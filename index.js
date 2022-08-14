@@ -6,6 +6,7 @@ const express = require('express');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const jsdom = require('jsdom');
+const loading =  require('loading-cli');
 const PORT = 3000;
 const app = express();
 
@@ -44,5 +45,5 @@ app.get('/debe', (req,res) => {
 })
 
 app.listen(PORT, () => {
-    console.log('ek$i-Debe-API is runningx');
+    const load = loading(`ekSi-Debe Running.. Port: ${PORT}`).start()
 })
