@@ -10,6 +10,8 @@ const loading =  require('loading-cli');
 const PORT = 3000;
 const app = express();
 
+const eksiBaseUrl = 'https://eksisozluk.com';
+
 
 /**
  * Endpoint to fetch debe datas of SourTimes/ekSi
@@ -39,8 +41,8 @@ app.get('/debe', (req,res) => {
             debes.push(debe);
 
             if(i == (debesLength-1)){
-                console.log(debes);
                 res.send(debes);
+                getDebeEntriesWithDetails(debes);
             }
         });
     
@@ -49,7 +51,33 @@ app.get('/debe', (req,res) => {
 })
 
 function getDebeEntriesWithDetails(debeMetaLogs){
+    
     console.log(debeMetaLogs);
+
+    if(debeMetaLogs.length > 0){
+
+        debeMetaLogs.forEach((debeMetaLog, index) => {
+            setTimeout(() => {
+                console.log(debeMetaLog.title);
+                axios.get(eksiBaseUrl+debeMetaLog.uri).then((response) => {
+                    debeHtml = response.data;
+
+                    /**
+                     * @todo Burada eristigimiz html icerikteki author, content, saat bilgilerini bir ustteki debeMetaLogs
+                     * degiskeniyle merge edip dongu sonunda genel bir debe JSON verini hazirlamayi hedefliyoruz
+                     */
+                    console.log(debeHtml);
+                    let debe = cheerio.load(debeHtml);
+
+                    // let debeContent = {};
+                    // debeContent.entry = debe.find('.content-expanded').text();
+                    // debeContent.author = debe.find('a.entry-author').text();
+
+                })
+            }, 7000*index)
+        })
+
+    }
 }
 
 app.listen(PORT, () => {
