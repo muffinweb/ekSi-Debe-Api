@@ -10,6 +10,10 @@ const loading =  require('loading-cli');
 const PORT = 3000;
 const app = express();
 
+
+/**
+ * Endpoint to fetch debe datas of SourTimes/ekSi
+ */
 app.get('/debe', (req,res) => {
 
     /** Get Debe Content */
@@ -43,6 +47,10 @@ app.get('/debe', (req,res) => {
     });
 
 })
+
+function getDebeEntriesWithDetails(debeMetaLogs){
+    console.log(debeMetaLogs);
+}
 
 app.listen(PORT, () => {
     const load = loading(`ekSi-Debe Running.. Port: ${PORT}`).start()
