@@ -10,6 +10,9 @@ const loading =  require('loading-cli');
 const PORT = 3000;
 const app = express();
 
+//An Counter to fetch entries one by one
+let dispatchIndex = 0;
+
 const eksiBaseUrl = 'https://eksisozluk.com';
 
 
@@ -42,7 +45,7 @@ app.get('/debe', (req,res) => {
 
             if(i == (debesLength-1)){
                 res.send(debes);
-                getDebeEntriesWithDetails(debes);
+                getDebeEntriesWithDetailsDispatch(debes);
             }
         });
     
@@ -50,35 +53,49 @@ app.get('/debe', (req,res) => {
 
 })
 
-function getDebeEntriesWithDetails(debeMetaLogs){
+function getDebeEntriesWithDetailsDispatch(debeMetaLogs){
     
     console.log(debeMetaLogs);
 
     if(debeMetaLogs.length > 0){
-
-        debeMetaLogs.forEach((debeMetaLog, index) => {
-            setTimeout(() => {
-                console.log(debeMetaLog.title);
-                axios.get(eksiBaseUrl+debeMetaLog.uri).then((response) => {
-                    debeHtml = response.data;
-
-                    /**
-                     * @todo Burada eristigimiz html icerikteki author, content, saat bilgilerini bir ustteki debeMetaLogs
-                     * degiskeniyle merge edip dongu sonunda genel bir debe JSON verini hazirlamayi hedefliyoruz
-                     */
-                    console.log(debeHtml);
-                    let debe = cheerio.load(debeHtml);
-
-                    // let debeContent = {};
-                    // debeContent.entry = debe.find('.content-expanded').text();
-                    // debeContent.author = debe.find('a.entry-author').text();
-
-                })
-            }, 7000*index)
-        })
-
+        getDebeEntriesWithDetailsAction(debeMetaLogs);
     }
 }
+
+function getDebeEntriesWithDetailsAction(debeMetaLogs){
+    if(debeMetaLogs.length == dispatchIndex){
+        console.log('dispatch bitti');
+    }else{
+        setTimeout(() => {
+
+
+            axios.get(eksiBaseUrl+debeMetaLogs[dispatchIndex].uri).then((response) => {
+                debeHtml = response.data;
+        
+                /**
+                 * @todo Burada eristigimiz html icerikteki author, content, saat bilgilerini bir ustteki debeMetaLogs
+                 * degiskeniyle merge edip dongu sonunda genel bir debe JSON verini hazirlamayi hedefliyoruz
+                 */
+                console.log(debeHtml);
+                $debe = cheerio.load(debeHtml);
+                console.log(dispatchIndex);
+                dispatchIndex++;
+
+                //Recursive
+                getDebeEntriesWithDetailsAction(debeMetaLogs);
+    
+        
+                // let debeContent = {};
+                // debeContent.entry = debe.find('.content-expanded').text();
+                // debeContent.author = debe.find('a.entry-author').text();
+        
+            });
+        }, 7000)
+    }
+}
+
+
+
 
 app.listen(PORT, () => {
     const load = loading(`ekSi-Debe Running.. Port: ${PORT}`).start()
