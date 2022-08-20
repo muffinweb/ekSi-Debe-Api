@@ -10,6 +10,8 @@ const loading =  require('loading-cli');
 const PORT = 3000;
 const app = express();
 
+const tooMuchRequestPreventerInterval = 7000;
+
 //An Counter to fetch entries one by one
 let dispatchIndex = 0;
 
@@ -65,6 +67,7 @@ function getDebeEntriesWithDetailsDispatch(debeMetaLogs){
 function getDebeEntriesWithDetailsAction(debeMetaLogs){
     if(debeMetaLogs.length == dispatchIndex){
         console.log('dispatch bitti');
+        console.log(debeMetaLogs);
     }else{
         setTimeout(() => {
 
@@ -76,21 +79,39 @@ function getDebeEntriesWithDetailsAction(debeMetaLogs){
                  * @todo Burada eristigimiz html icerikteki author, content, saat bilgilerini bir ustteki debeMetaLogs
                  * degiskeniyle merge edip dongu sonunda genel bir debe JSON verini hazirlamayi hedefliyoruz
                  */
-                console.log(debeHtml);
-                $debe = cheerio.load(debeHtml);
-                console.log(dispatchIndex);
+                
+                let debeCheerio = cheerio.load(debeHtml);
+                //console.log(debeCheerio);
+
+                //Burada tekil DEBE icerigini degiskenlere atayip akabinde
+                // debeMetaLogs'un ilgili indisine uyguluyoruz
+
+                let debeEntry = {};
+                let entryContent = debeCheerio('.content').text();
+                console.log('output:' + entryContent);
+                let author = debeCheerio('.entry-author').text(); 
+                let date = debeCheerio('.entry-date').text();
+                let entryId = debeCheerio('li[data-author]').attr('data-id');
+                let favoriteCount = debeCheerio('li[data-author]').attr('data-favorite-count');
+
+                debeEntry.entryContent = entryContent;
+                debeEntry.author = author;
+                debeEntry.date = date;
+                debeEntry.entryId = entryId;
+                debeEntry.favoriteCount = favoriteCount;
+
+                console.log(debeEntry);
+
+                Object.assign(debeMetaLogs[dispatchIndex], debeEntry);
+
                 dispatchIndex++;
 
                 //Recursive
                 getDebeEntriesWithDetailsAction(debeMetaLogs);
-    
+
         
-                // let debeContent = {};
-                // debeContent.entry = debe.find('.content-expanded').text();
-                // debeContent.author = debe.find('a.entry-author').text();
-        
-            });
-        }, 7000)
+            })
+        }, tooMuchRequestPreventerInterval)
     }
 }
 
