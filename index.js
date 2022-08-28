@@ -7,8 +7,11 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const jsdom = require('jsdom');
 const loading =  require('loading-cli');
+const fs = require('fs');
 const PORT = 3000;
 const app = express();
+
+const { getYesterday } = require('./yesterday');
 
 const tooMuchRequestPreventerInterval = 7000;
 
@@ -66,8 +69,18 @@ function getDebeEntriesWithDetailsDispatch(debeMetaLogs){
 
 function getDebeEntriesWithDetailsAction(debeMetaLogs){
     if(debeMetaLogs.length == dispatchIndex){
-        console.log('dispatch bitti');
-        console.log(debeMetaLogs);
+
+        fs.writeFile(getYesterday(), JSON.stringify(debeMetaLogs), function(err){
+
+            if(err){
+                console.error("Error occured while DebeLog creating..\n");
+                console.log(err);
+            }else{
+                console.log("Debelog successfully created");
+            }
+
+        })
+
     }else{
         setTimeout(() => {
 
@@ -88,7 +101,6 @@ function getDebeEntriesWithDetailsAction(debeMetaLogs){
 
                 let debeEntry = {};
                 let entryContent = debeCheerio('.content').text();
-                console.log('output:' + entryContent);
                 let author = debeCheerio('.entry-author').text(); 
                 let date = debeCheerio('.entry-date').text();
                 let entryId = debeCheerio('li[data-author]').attr('data-id');
@@ -100,8 +112,6 @@ function getDebeEntriesWithDetailsAction(debeMetaLogs){
                 debeEntry.entryId = entryId;
                 debeEntry.favoriteCount = favoriteCount;
 
-                console.log(debeEntry);
-
                 Object.assign(debeMetaLogs[dispatchIndex], debeEntry);
 
                 dispatchIndex++;
@@ -109,7 +119,6 @@ function getDebeEntriesWithDetailsAction(debeMetaLogs){
                 //Recursive
                 getDebeEntriesWithDetailsAction(debeMetaLogs);
 
-        
             })
         }, tooMuchRequestPreventerInterval)
     }
