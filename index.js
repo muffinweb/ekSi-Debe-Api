@@ -2,14 +2,10 @@
  * Eksi-Debe-Api
  */
 
-const express = require('express');
 const axios = require('axios');
 const cheerio = require('cheerio');
-const jsdom = require('jsdom');
 const loading =  require('loading-cli');
 const fs = require('fs');
-const PORT = 3000;
-const app = express();
 
 const { getYesterday } = require('./yesterday');
 
@@ -24,50 +20,58 @@ const eksiBaseUrl = 'https://eksisozluk.com';
 /**
  * Endpoint to fetch debe datas of SourTimes/ekSi
  */
-app.get('/debe', (req,res) => {
 
-    /** Get Debe Content */
-    axios.get('https://eksisozluk.com/debe').then((response) => {
+(async function(){
+    const loading = loading('ek$i-Debe Data is scanning..').start();
+    let result = prepareDebes();
+    loading.succeed(result);
+})()
 
-        //Request Response <xml/html>
-        const html = response.data;
+/** Get Debe Content */
 
-        //Load xml/Html content to cheerio instance
-        const $ = cheerio.load(html);
+async function prepareDebes(){
+    return new Promise((resolve, reject) => {
+        axios.get('https://eksisozluk.com/debe').then((response) => {
 
-        //Array that debes are detected
-        let debes = [];
+            //Request Response <xml/html>
+            const html = response.data;
 
-        //Detected Debes Length
-        let debesLength = $('nav#partial-index ul li').length;
+            //Load xml/Html content to cheerio instance
+            const $ = cheerio.load(html);
 
-        //Get Essential data in loop
-        $('nav#partial-index ul li').each((i, elem) => {
-            let debe = {};
-            debe.title = $(elem).find('span').text();
-            debe.uri = $(elem).find('a').attr('href');
-            debes.push(debe);
+            //Array that debes are detected
+            let debes = [];
 
-            if(i == (debesLength-1)){
-                res.send(debes);
-                getDebeEntriesWithDetailsDispatch(debes);
-            }
+            //Detected Debes Length
+            let debesLength = $('nav#partial-index ul li').length;
+
+            //Get Essential data in loop
+            $('nav#partial-index ul li').each((i, elem) => {
+
+                let debe = {};
+                debe.title = $(elem).find('span').text();
+                debe.uri = $(elem).find('a').attr('href');
+                debes.push(debe);
+
+                if(i == (debesLength-1)){
+                    getDebeEntriesWithDetailsDispatch(debes, resolve)
+                }
+            });
+
         });
-    
-    });
+    })
+}
 
-})
-
-function getDebeEntriesWithDetailsDispatch(debeMetaLogs){
+async function getDebeEntriesWithDetailsDispatch(debeMetaLogs, resolve){
     
     console.log(debeMetaLogs);
 
     if(debeMetaLogs.length > 0){
-        getDebeEntriesWithDetailsAction(debeMetaLogs);
+        getDebeEntriesWithDetailsAction(debeMetaLogs, resolve);
     }
 }
 
-function getDebeEntriesWithDetailsAction(debeMetaLogs){
+async function getDebeEntriesWithDetailsAction(debeMetaLogs, resolve){
     if(debeMetaLogs.length == dispatchIndex){
 
         fs.writeFile(getYesterday(), JSON.stringify(debeMetaLogs), function(err){
@@ -76,7 +80,7 @@ function getDebeEntriesWithDetailsAction(debeMetaLogs){
                 console.error("Error occured while DebeLog creating..\n");
                 console.log(err);
             }else{
-                console.log("Debelog successfully created");
+                resolve("Debelog successfully created");
             }
 
         })
@@ -123,10 +127,3 @@ function getDebeEntriesWithDetailsAction(debeMetaLogs){
         }, tooMuchRequestPreventerInterval)
     }
 }
-
-
-
-
-app.listen(PORT, () => {
-    const load = loading(`ekSi-Debe Running.. Port: ${PORT}`).start()
-})
