@@ -1,6 +1,5 @@
 # ekSi-Debe-Api
- Eksisozluk.com is one the most visited websites in Turkey. And Debe means most rated user-comments-entries. This api lets you reach debe datas querying spesific dates and react archive
-
+ Eksisozluk.com is one the most visited websites in Turkey. And Debe means most rated user-comments-entries. This data scrapping tool lets you reach Debe datas and prepares a well-structured json data file.
 ## How to make it work?
 ``` bash
 npm install
