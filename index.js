@@ -15,7 +15,7 @@ const tooMuchRequestPreventerInterval = 7000;
 //An Counter to fetch entries one by one
 let dispatchIndex = 0;
 
-const eksiBaseUrl = 'https://eksisozluk.com';
+const eksiBaseUrl = 'https://eksisozluk1923.com';
 
 
 /**
@@ -29,7 +29,7 @@ const eksiBaseUrl = 'https://eksisozluk.com';
 /** Get Debe Content */
 
 async function startEk$iScam(){
-    axios.get('https://eksisozluk.com/debe').then((response) => {
+    axios.get('https://eksisozluk1923.com/debe').then((response) => {
 
         //Request Response <xml/html>
         const html = response.data;
